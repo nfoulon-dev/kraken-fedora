@@ -12,7 +12,7 @@ Linux — the CAM "dual" view, which neither CoolerControl nor liquidctl offers.
 ```
 
 `kraken-lcd-dual.py` renders that 320×320 frame with Pillow and pushes it to the
-screen with liquidctl; `kraken-lcd-dual.service` keeps it live (every 3 s by
+screen with liquidctl; `kraken-lcd-dual.service` keeps it live (every 5 s by
 default).
 
 ## Install
@@ -99,7 +99,7 @@ kraken-lcd-dual`.
 
 ## Customising
 
-* **Refresh rate** — `--loop SECONDS` (default 3).
+* **Refresh rate** — `--loop SECONDS` (default 5).
 * **Colours** — `ACCENTS` at the top of `kraken-lcd-dual.py`.
 * **Header text** — `TITLE` (set to `""` to remove it).
 * **Brightness** — `sudo liquidctl --match kraken set lcd screen brightness 70`;

@@ -4,7 +4,7 @@
 #   ./setup.sh                        install packages, renderer and service
 #   ./setup.sh --with-coolercontrol   also install CoolerControl from its COPR
 #   ./setup.sh --free-device          let CoolerControl release the AIO (GUI closed!)
-#   ./setup.sh --interval 2           refresh every 2 s instead of 3
+#   ./setup.sh --interval 2           refresh every 2 s instead of 5
 #
 set -euo pipefail
 
@@ -18,7 +18,7 @@ PACKAGES=(liquidctl python3-pillow dejavu-sans-fonts)
 
 WITH_COOLERCONTROL=0
 FREE_DEVICE=0
-INTERVAL=3
+INTERVAL=5
 
 usage() {
     sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
@@ -28,7 +28,7 @@ Options:
   --with-coolercontrol   install CoolerControl + daemon (COPR codifryed/CoolerControl)
   --free-device          disable the Kraken inside CoolerControl so the LCD is free
                          (close the CoolerControl desktop app first)
-  --interval SECONDS     refresh interval for the LCD (default 3)
+  --interval SECONDS     refresh interval for the LCD (default 5)
   -h, --help             this help
 EOF
 }
