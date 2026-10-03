@@ -1,0 +1,20 @@
+[Unit]
+Description=NZXT Kraken Z LCD: dual CPU/GPU temperature view
+Documentation=https://github.com/nfoulon-dev/kraken-fedora
+# The AIO's USB interface only tolerates one owner: if CoolerControl manages this
+# device (for its own LCD), the pushes below fail with EBUSY. See the README.
+After=coolercontrold.service
+
+[Service]
+Type=simple
+RuntimeDirectory=kraken-lcd-dual
+ExecStart=/usr/bin/python3 /usr/local/bin/kraken-lcd-dual.py --loop 3
+Restart=always
+RestartSec=5
+Nice=5
+# Successful pushes are silent; only problems reach the journal.
+StandardOutput=null
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
