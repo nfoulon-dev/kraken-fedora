@@ -57,6 +57,20 @@ you get a bonus: with the liquidctl copy disabled, CoolerControl stops hiding th
 duplicate hwmon device, so the AIO finally shows up with its **pump, radiator fan and
 coolant temperature** — which is what lets you build coolant-based AIO curves there.
 
+## What happens across reboots
+
+* **Normal reboot, or suspend + resume** — the screen keeps its last frame. The image
+  lives in the device's own memory, and liquidctl's documentation notes that
+  configuration "persists as long as the device still gets power, even if the system
+  has gone to Soft Off (S5) state". The service is `enabled`, so within a few seconds
+  of boot it repaints the display with live temperatures regardless.
+* **Full power loss** (PSU switched off, cable pulled, wall switch) — the device's
+  memory is gone, and liquidctl refuses to write until it has been initialized
+  ("necessary after powering on from Mechanical Off"). A failed push therefore runs
+  `liquidctl --match kraken initialize` automatically (at most once a minute) and
+  retries, so the display comes back on its own. Nothing to do by hand after a cold
+  boot.
+
 ## Choosing what to display
 
 Sensor sources are `LABEL=source`:

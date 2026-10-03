@@ -205,20 +205,47 @@ def default_render_path() -> str:
     return "/tmp/kraken-dual.png"
 
 
-def push(path: str, attempts: int = 6, delay: float = 0.4, quiet: bool = False) -> bool:
-    """Send the frame, retrying while another process briefly holds the device."""
-    cmd = ["liquidctl", "--match", "kraken", "set", "lcd", "screen", "static", path]
+def liquidctl_cmd(*args: str) -> list[str]:
+    cmd = ["liquidctl", "--match", "kraken", *args]
     if os.geteuid() != 0 and shutil.which("sudo"):
         cmd = ["sudo", "-n", *cmd]
+    return cmd
+
+
+_last_init = 0.0
+
+
+def initialize() -> bool:
+    """Send liquidctl's initialize, at most once a minute.
+
+    liquidctl needs this after a cold power-on (device fully off mains) before
+    reads and writes behave, so a failed push retries through it.
+    """
+    global _last_init
+    if time.time() - _last_init < 60:
+        return False
+    _last_init = time.time()
+    return subprocess.run(liquidctl_cmd("initialize"), capture_output=True).returncode == 0
+
+
+def push(path: str, attempts: int = 6, delay: float = 0.4, quiet: bool = False) -> bool:
+    """Send the frame, retrying while another process briefly holds the device."""
+    cmd = liquidctl_cmd("set", "lcd", "screen", "static", path)
     for attempt in range(1, attempts + 1):
         res = subprocess.run(cmd, capture_output=True, text=True)
         if res.returncode == 0:
             return True
-        if "Resource busy" not in (res.stderr + res.stdout):
-            sys.stderr.write(res.stderr or res.stdout)
-            return False
-        if attempt < attempts:
-            time.sleep(delay)
+        message = res.stderr + res.stdout
+        if "Resource busy" in message:
+            if attempt < attempts:
+                time.sleep(delay)
+            continue
+        # Not a busy device: most likely a cold boot, where liquidctl requires an
+        # initialize before it will write. Do that once, then keep trying.
+        if initialize() and attempt < attempts:
+            continue
+        sys.stderr.write(res.stderr or res.stdout)
+        return False
     if not quiet:
         sys.stderr.write("device stayed busy (is another LCD owner running?)\n")
     return False
